@@ -48,7 +48,7 @@ async def health_check(request: Request):
             status_code = 206
 
         return Response(
-            content=str(health_status),
+            content=health_status,
             status_code=status_code,
             media_type="application/json",
         )

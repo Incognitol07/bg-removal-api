@@ -4,13 +4,11 @@ Handles model loading, processing queue, and GPU/CPU management
 """
 import asyncio
 import logging
-from typing import List, Optional
+from typing import List
 from PIL import Image
-import rembg
 from rembg import remove, new_session
 from app.core.config import settings
 from app.core.utils import PerformanceLogger, generate_request_id
-import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import queue

@@ -41,6 +41,10 @@ class Settings(BaseSettings):
         default="isnet-general-use", 
         description="REMBG model name (u2net, u2net_human_seg, silueta, etc.)"
     )
+    MODEL_CACHE_DIR: Optional[str] = Field(
+        default=None,
+        description="Directory to cache downloaded models"
+    )
     
     # Processing Configuration
     USE_GPU: bool = Field(
@@ -76,6 +80,16 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Set model cache directory if not specified
+        if not self.MODEL_CACHE_DIR:
+            self.MODEL_CACHE_DIR = os.path.join(os.getcwd(), ".model_cache")
+            
+        # Ensure cache directory exists
+        os.makedirs(self.MODEL_CACHE_DIR, exist_ok=True)
 
 
 # Global settings instance

@@ -34,10 +34,6 @@ class BackgroundRemoverService:
         """Initialize the service and load the model"""
         try:
             with PerformanceLogger("Model initialization"):
-                # Set model cache directory
-                if settings.MODEL_CACHE_DIR:
-                    os.environ['U2NET_HOME'] = settings.MODEL_CACHE_DIR
-                
                 # Create thread pool executor for CPU-bound tasks
                 self._executor = ThreadPoolExecutor(
                     max_workers=settings.MAX_CONCURRENT_REQUESTS,

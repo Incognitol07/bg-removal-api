@@ -12,6 +12,3 @@ dependencies = [
     "rembg>=2.0.67",
     "uvicorn>=0.37.0",
 ]
-
-[tool.uv]
-dev-dependencies = []

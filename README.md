@@ -123,8 +123,6 @@ pip install pytest pytest-asyncio httpx
 # Run tests
 pytest tests/ -v
 
-# Run with coverage
-pytest tests/ --cov=app --cov-report=html
 ```
 
 ## Health Monitoring

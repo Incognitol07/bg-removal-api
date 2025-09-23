@@ -287,7 +287,6 @@ async def api_info():
             "batch_processing": True,
             "multiple_output_formats": True,
             "quality_control": True,
-            "gpu_acceleration": settings.USE_GPU,
         },
     }
 
@@ -298,7 +297,7 @@ async def metrics():
     Return best-effort system and process metrics.
 
     This endpoint is intentionally lightweight and best-effort: if optional
-    packages like `psutil` or `GPUtil` are not installed, the endpoint will
+    packages like `psutil` are not installed, the endpoint will
     still return a minimal payload.
     """
     import time

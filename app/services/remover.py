@@ -1,6 +1,6 @@
 """
 Background remover service using rembg
-Handles model loading, processing queue, and GPU/CPU management
+Handles model loading, processing queue, and CPU management
 """
 import asyncio
 import logging

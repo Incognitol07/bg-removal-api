@@ -45,12 +45,7 @@ class Settings(BaseSettings):
         default=None,
         description="Directory to cache downloaded models"
     )
-    
-    # Processing Configuration
-    USE_GPU: bool = Field(
-        default=False,
-        description="Use GPU if available (requires CUDA setup)"
-    )
+
     MAX_CONCURRENT_REQUESTS: int = Field(
         default=4,
         description="Maximum concurrent background removal requests"

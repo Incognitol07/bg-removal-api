@@ -165,11 +165,11 @@ def get_system_metrics() -> dict:
     """
     Best-effort system and process metrics.
 
-    Tries to use optional libraries (`psutil`, `GPUtil`) when available.
+    Tries to use the optional library (`psutil`) when available.
     Falls back to conservative defaults if not present so calling code
     never raises due to missing optional deps.
 
-    Returns a dict with keys: cpu, memory, process, disk, uptime, gpus (optional)
+    Returns a dict with keys: cpu, memory, process, disk, uptime
     """
     import time
     import os
@@ -181,7 +181,6 @@ def get_system_metrics() -> dict:
         "process": {},
         "disk": {},
         "uptime_seconds": None,
-        "gpus": [],
     }
 
     # psutil (optional)

@@ -18,7 +18,7 @@ A high-performance FastAPI service for removing backgrounds from images using th
 1. **Clone and build**:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Incognitol07/bg-removal-api
    cd bg-remover-api
    docker build -t bg-remover-api .
    ```
@@ -65,7 +65,6 @@ A high-performance FastAPI service for removing backgrounds from images using th
 | `POST` | `/api/v1/batch` | Remove background from multiple images |
 | `GET` | `/api/v1/health` | Health check |
 | `GET` | `/api/v1/info` | API information |
-| `GET` | `/api/v1/models` | List available models |
 
 ### Single Image Processing
 
@@ -99,7 +98,6 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 | `MAX_FILE_SIZE` | `10485760` | Maximum file size (10MB) |
 | `MAX_FILES_BATCH` | `5` | Maximum files per batch |
 | `MAX_CONCURRENT_REQUESTS` | `4` | Concurrent processing limit |
-| `USE_GPU` | `false` | Enable GPU acceleration |
 | `DEFAULT_OUTPUT_FORMAT` | `PNG` | Default output format |
 
 ## Docker Deployment

@@ -2,9 +2,8 @@
 API routes for background remover
 """
 
-import asyncio
 from typing import List, Optional
-from fastapi import APIRouter, File, UploadFile, HTTPException, Query, Request, Form
+from fastapi import APIRouter, File, UploadFile, HTTPException, Query, Request
 from fastapi.responses import Response
 from app.core.config import settings
 from app.core.utils import (
@@ -262,53 +261,6 @@ async def remove_background_batch(
         raise HTTPException(
             status_code=500, detail=f"Batch processing failed: {str(e)}"
         )
-
-
-@router.get("/models")
-async def list_available_models():
-    """
-    List available rembg models
-
-    Returns:
-        List of available model names and descriptions
-    """
-    models = {
-        "u2net": {
-            "name": "U2-Net",
-            "description": "General purpose background removal",
-            "best_for": "General images, objects, people",
-        },
-        "u2net_human_seg": {
-            "name": "U2-Net Human Segmentation",
-            "description": "Optimized for human subjects",
-            "best_for": "Portrait photos, people",
-        },
-        "u2netp": {
-            "name": "U2-Net Lightweight",
-            "description": "Faster, lighter version of U2-Net",
-            "best_for": "Quick processing, mobile applications",
-        },
-        "silueta": {
-            "name": "Silueta",
-            "description": "High quality silhouette extraction",
-            "best_for": "Clean silhouettes, logos",
-        },
-        "isnet-general-use": {
-            "name": "IS-Net General",
-            "description": "High accuracy general purpose model",
-            "best_for": "High quality general background removal",
-        },
-    }
-
-    current_model = settings.REMBG_MODEL
-
-    return {
-        "available_models": models,
-        "current_model": current_model,
-        "current_model_info": models.get(
-            current_model, {"name": "Unknown", "description": "Custom model"}
-        ),
-    }
 
 
 @router.get("/info")

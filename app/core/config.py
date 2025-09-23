@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     
     # REMBG Model Configuration
     REMBG_MODEL: str = Field(
-        default="u2net", 
+        default="isnet-general-use", 
         description="REMBG model name (u2net, u2net_human_seg, silueta, etc.)"
     )
     MODEL_CACHE_DIR: Optional[str] = Field(

@@ -47,11 +47,10 @@ async def health_check(request: Request):
         elif health_status.get("status") == "degraded":
             status_code = 206
 
-        return Response(
-            content=health_status,
-            status_code=status_code,
-            media_type="application/json",
-        )
+        return {
+            "content": health_status,
+            "status_code": status_code
+        }
 
     except Exception as e:
         logger.error(f"Health check error: {e}")

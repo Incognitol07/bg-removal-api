@@ -6,6 +6,7 @@ import asyncio
 import logging
 from typing import List
 from PIL import Image
+import os
 from rembg import remove, new_session
 from app.core.config import settings
 from app.core.utils import PerformanceLogger, generate_request_id

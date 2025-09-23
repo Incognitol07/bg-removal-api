@@ -110,16 +110,6 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 ```bash
 # Build production image
 docker build -t bg-remover-api:latest .
-
-# Run with custom configuration
-docker run -d \
-  --name bg-remover \
-  -p 8000:8000 \
-  -e REMBG_MODEL=u2net_human_seg \
-  -e MAX_CONCURRENT_REQUESTS=8 \
-  -e USE_GPU=true \
-  -v $(pwd)/models:/app/.model_cache \
-  bg-remover-api:latest
 ```
 
 ## Testing

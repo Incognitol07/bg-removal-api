@@ -30,11 +30,12 @@ COPY pyproject.toml .
 # Install Python dependencies using uv sync
 RUN uv sync
 
-# Preload rembg model to cache it in the image
-RUN uv run python -c "from rembg import new_session; new_session('isnet-general-use')"
 
 # Copy application code
 COPY . .
+
+# Preload rembg model to cache it in the image
+RUN uv run python -c "from rembg import new_session; new_session('isnet-general-use')"
 
 # Create non-root user for security
 RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \

@@ -1,10 +1,13 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Use Python 3.13 slim image
+FROM python:3.13-slim
 
-# Set environment variables
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    UV_PYTHON_PREFERENCE=only-system \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
+    U2NET_HOME=/app/.model_cache
 
 # Set work directory
 WORKDIR /app
@@ -16,22 +19,25 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv using pip
+# Create model cache directory
+RUN mkdir -p $U2NET_HOME
+
+# Install uv
 RUN pip install uv
 
-# Copy pyproject.toml first for better Docker layer caching
-COPY pyproject.toml .
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Install Python dependencies using uv sync
-RUN uv sync
+# Install Python dependencies using system Python
+RUN uv sync --frozen
+
+# Preload rembg model into image
+RUN uv run python -c "from rembg import new_session; new_session('isnet-general-use')"
 
 # Copy application code
 COPY . .
 
-# Preload rembg model to cache it in the image
-RUN uv run python -c "from rembg import new_session; new_session('isnet-general-use')"
-
-# Create non-root user for security
+# Create non-root user for runtime
 RUN adduser --disabled-password --gecos '' --uid 1000 appuser && \
     chown -R appuser:appuser /app
 

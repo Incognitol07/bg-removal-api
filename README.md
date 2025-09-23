@@ -10,7 +10,6 @@ A high-performance FastAPI service for removing backgrounds from images using th
 - ⚡ **High Performance**: Async processing with concurrent request handling
 - 🚀 **Production Ready**: Docker containerization with health checks
 - 🔧 **Configurable**: Environment-based configuration
-- 🧪 **Well Tested**: Comprehensive test suite
 
 ## Quick Start
 
@@ -110,19 +109,6 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 ```bash
 # Build production image
 docker build -t bg-remover-api:latest .
-```
-
-## Testing
-
-Run the test suite:
-
-```bash
-# Install test dependencies
-pip install pytest pytest-asyncio httpx
-
-# Run tests
-pytest tests/ -v
-
 ```
 
 ## Health Monitoring

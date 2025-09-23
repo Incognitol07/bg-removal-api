@@ -63,11 +63,7 @@ class BackgroundRemoverService:
         try:
             # Create new session with specified model
             self._session = new_session(settings.REMBG_MODEL)
-            
-            # Test the model with a small dummy image to ensure it's loaded
-            dummy_image = Image.new('RGB', (100, 100), color='red')
-            _ = remove(dummy_image, session=self._session)
-            
+
             logger.info(f"Model {settings.REMBG_MODEL} loaded successfully")
             
         except Exception as e:
@@ -204,22 +200,6 @@ class BackgroundRemoverService:
                 "queue_size": self._processing_queue.qsize() if hasattr(self._processing_queue, 'qsize') else 0,
                 "executor_active": self._executor is not None and not self._executor._shutdown
             }
-            
-            # Test with a small image if model is loaded
-            if self._model_loaded:
-                try:
-                    test_image = Image.new('RGB', (50, 50), color='blue')
-                    await asyncio.wait_for(
-                        self.remove_background(test_image, "health_check"),
-                        timeout=5.0
-                    )
-                    status["test_processing"] = "success"
-                except asyncio.TimeoutError:
-                    status["test_processing"] = "timeout"
-                    status["status"] = "degraded"
-                except Exception as e:
-                    status["test_processing"] = f"failed: {str(e)}"
-                    status["status"] = "unhealthy"
             
             return status
             

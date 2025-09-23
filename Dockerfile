@@ -12,13 +12,8 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
     libgomp1 \
-    libgtk-3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv using pip
@@ -29,7 +24,6 @@ COPY pyproject.toml .
 
 # Install Python dependencies using uv sync
 RUN uv sync
-
 
 # Copy application code
 COPY . .

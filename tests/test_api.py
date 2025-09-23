@@ -56,15 +56,6 @@ class TestHealthEndpoints:
         assert "configuration" in data
         assert "features" in data
 
-    def test_list_models(self):
-        """Test models listing endpoint"""
-        response = client.get("/api/v1/models")
-        assert response.status_code == 200
-        data = response.json()
-        assert "available_models" in data
-        assert "current_model" in data
-        assert "current_model_info" in data
-
 
 class TestImageProcessing:
     """Test image processing endpoints"""

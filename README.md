@@ -9,7 +9,6 @@ A high-performance FastAPI service for removing backgrounds from images using th
 - 🎨 **Multiple Output Formats**: Support for PNG, JPEG, and WEBP
 - ⚡ **High Performance**: Async processing with concurrent request handling
 - 🚀 **Production Ready**: Docker containerization with health checks
-- 📊 **Multiple Models**: Support for various rembg models (U2-Net, IS-Net, etc.)
 - 🔧 **Configurable**: Environment-based configuration
 - 🧪 **Well Tested**: Comprehensive test suite
 
@@ -18,6 +17,7 @@ A high-performance FastAPI service for removing backgrounds from images using th
 ### Using Docker (Recommended)
 
 1. **Clone and build**:
+
    ```bash
    git clone <repository-url>
    cd bg-remover-api
@@ -25,31 +25,35 @@ A high-performance FastAPI service for removing backgrounds from images using th
    ```
 
 2. **Run the container**:
+
    ```bash
    docker run -p 8000:8000 bg-remover-api
    ```
 
 3. **Access the API**:
-   - API: http://localhost:8000
-   - Interactive docs: http://localhost:8000/docs
-   - Health check: http://localhost:8000/api/v1/health
+   - API: <http://localhost:8000>
+   - Interactive docs: <http://localhost:8000/docs>
+   - Health check: <http://localhost:8000/api/v1/health>
 
 ### Local Development
 
 1. **Install dependencies**:
+
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
 
 2. **Set environment variables**:
+
    ```bash
    cp .env.example .env
    # Edit .env with your settings
    ```
 
 3. **Run the application**:
+
    ```bash
-   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 ## API Endpoints
@@ -92,20 +96,12 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `REMBG_MODEL` | `u2net` | Background removal model |
+| `REMBG_MODEL` | `isnet-general-use` | Background removal model |
 | `MAX_FILE_SIZE` | `10485760` | Maximum file size (10MB) |
 | `MAX_FILES_BATCH` | `5` | Maximum files per batch |
 | `MAX_CONCURRENT_REQUESTS` | `4` | Concurrent processing limit |
 | `USE_GPU` | `false` | Enable GPU acceleration |
 | `DEFAULT_OUTPUT_FORMAT` | `PNG` | Default output format |
-
-### Available Models
-
-- `u2net` - General purpose (recommended)
-- `u2net_human_seg` - Optimized for humans
-- `u2netp` - Lightweight version
-- `silueta` - High quality silhouettes
-- `isnet-general-use` - High accuracy general purpose
 
 ## Docker Deployment
 
@@ -125,59 +121,6 @@ docker run -d \
   -v $(pwd)/models:/app/.model_cache \
   bg-remover-api:latest
 ```
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-
-services:
-  bg-remover-api:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - REMBG_MODEL=u2net
-      - MAX_CONCURRENT_REQUESTS=4
-      - MAX_FILE_SIZE=20971520  # 20MB
-    volumes:
-      - ./models:/app/.model_cache
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-## Performance Optimization
-
-### GPU Acceleration
-
-To enable GPU support:
-
-1. **Install CUDA dependencies**:
-   ```bash
-   # Uncomment GPU lines in requirements.txt
-   pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118
-   ```
-
-2. **Set environment variable**:
-   ```bash
-   export USE_GPU=true
-   ```
-
-3. **Use CUDA Docker image**:
-   ```dockerfile
-   FROM nvidia/cuda:11.8-runtime-ubuntu20.04
-   # ... rest of Dockerfile
-   ```
-
-### Scaling Options
-
-1. **Horizontal Scaling**: Run multiple containers behind a load balancer
-2. **Vertical Scaling**: Increase `MAX_CONCURRENT_REQUESTS`
-3. **Model Caching**: Use persistent volumes for model cache
-4. **Background Queue**: Integrate with Redis/Celery for heavy workloads
 
 ## Testing
 
@@ -203,6 +146,7 @@ curl http://localhost:8000/api/v1/health
 ```
 
 Response includes:
+
 - Service status
 - Model loading status
 - Processing capabilities
@@ -220,6 +164,7 @@ The API provides detailed error responses:
 ```
 
 Common error codes:
+
 - `400` - Invalid input (file type, parameters)
 - `413` - File too large
 - `422` - Validation error
@@ -230,11 +175,11 @@ Common error codes:
 
 Successful responses include useful metadata:
 
-```
+```plaintext
 Content-Type: image/png
 Content-Disposition: attachment; filename=no_bg_image.png
 X-Request-ID: 12345678-1234-1234-1234-123456789012
-X-Processing-Model: u2net
+X-Processing-Model: isnet-general-use
 X-Input-Size: 1048576
 X-Output-Size: 987654
 ```

@@ -21,7 +21,13 @@ class Settings(BaseSettings):
         default=["*"], 
         description="Allowed CORS origins"
     )
-    
+
+    # Authentication
+    API_KEY: Optional[str] = Field(
+        default=None, 
+        description="API key for authentication"
+    )
+
     # File Upload Limits
     MAX_FILE_SIZE: int = Field(
         default=10 * 1024 * 1024,  # 10MB

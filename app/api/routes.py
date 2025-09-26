@@ -3,7 +3,7 @@ API routes for background remover
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, File, UploadFile, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query, Request
 from fastapi.responses import Response
 from app.core.config import settings
 from app.core.utils import (
@@ -16,6 +16,7 @@ from app.core.utils import (
 )
 from app.core.utils import get_system_metrics
 from app.services.remover import BackgroundRemoverService
+from app.services.auth import get_api_key
 import logging
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ async def health_check(request: Request):
         raise HTTPException(status_code=503, detail="Service unavailable")
 
 
-@router.post("/remove")
+@router.post("/remove", dependencies=[Depends(get_api_key)])
 async def remove_background(
     request: Request,
     file: UploadFile = File(..., description="Image file to remove background from"),
@@ -138,7 +139,7 @@ async def remove_background(
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 
-@router.post("/batch")
+@router.post("/batch", dependencies=[Depends(get_api_key)])
 async def remove_background_batch(
     request: Request,
     files: List[UploadFile] = File(..., description="Multiple image files to process"),
@@ -291,7 +292,7 @@ async def api_info():
     }
 
 
-@router.get("/metrics")
+@router.get("/metrics", dependencies=[Depends(get_api_key)])
 async def metrics():
     """
     Return best-effort system and process metrics.

@@ -108,7 +108,15 @@ async def remove_background(
 
             # Prepare response
             content_type = get_content_type(format_to_use)
-            filename = f"no_bg_{file.filename.rsplit('.', 1)[0] if file.filename else 'image'}.{format_to_use.lower()}"
+            # Sanitize filename to ASCII to avoid encoding issues
+            base_filename = (
+                file.filename.rsplit(".", 1)[0] if file.filename else "image"
+            )
+            # Remove non-ASCII characters and replace with underscore
+            safe_filename = (
+                base_filename.encode("ascii", "ignore").decode("ascii") or "image"
+            )
+            filename = f"no_bg_{safe_filename}.{format_to_use.lower()}"
 
             logger.info(f"Successfully processed image [req: {request_id}]")
 
@@ -213,13 +221,18 @@ async def remove_background_batch(
                         result_image, format_to_use, quality_to_use
                     )
 
-                    # Create output filename
+                    # Create output filename with ASCII-safe name
                     base_name = (
                         original_filename.rsplit(".", 1)[0]
                         if "." in original_filename
                         else original_filename
                     )
-                    output_filename = f"no_bg_{base_name}.{format_to_use.lower()}"
+                    # Sanitize filename to ASCII
+                    safe_base_name = (
+                        base_name.encode("ascii", "ignore").decode("ascii")
+                        or f"image_{i+1}"
+                    )
+                    output_filename = f"no_bg_{safe_base_name}.{format_to_use.lower()}"
 
                     # Add to ZIP
                     zip_file.writestr(output_filename, image_bytes)

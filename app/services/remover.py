@@ -284,10 +284,9 @@ class BackgroundRemoverService:
             # Unload model if loaded
             if self._model_loaded:
                 self._unload_model()
-
+            
             # Force final garbage collection
             import gc
-
             gc.collect()
 
             # Shutdown executor

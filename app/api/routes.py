@@ -48,10 +48,7 @@ async def health_check(request: Request):
         elif health_status.get("status") == "degraded":
             status_code = 206
 
-        return {
-            "content": health_status,
-            "status_code": status_code
-        }
+        return {"content": health_status, "status_code": status_code}
 
     except Exception as e:
         logger.error(f"Health check error: {e}")
@@ -87,11 +84,6 @@ async def remove_background(
     try:
         # Get remover service
         remover_service: BackgroundRemoverService = request.app.state.remover_service
-
-        if not remover_service.is_ready:
-            raise HTTPException(
-                status_code=503, detail="Background remover service not ready"
-            )
 
         with PerformanceLogger("Single image API processing", request_id):
             # Load image from upload
@@ -178,11 +170,6 @@ async def remove_background_batch(
 
         # Get remover service
         remover_service: BackgroundRemoverService = request.app.state.remover_service
-
-        if not remover_service.is_ready:
-            raise HTTPException(
-                status_code=503, detail="Background remover service not ready"
-            )
 
         with PerformanceLogger(
             f"Batch API processing ({len(files)} files)", request_id

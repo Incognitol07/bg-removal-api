@@ -289,9 +289,5 @@ class BackgroundRemoverService:
 
     @property
     def is_ready(self) -> bool:
-        """Check if service is ready to process requests"""
-        return (
-            self._model_loaded
-            and self._executor is not None
-            and not self._executor._shutdown
-        )
+        """Check if service is ready to process requests (executor initialized)"""
+        return self._executor is not None and not self._executor._shutdown

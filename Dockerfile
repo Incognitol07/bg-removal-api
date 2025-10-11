@@ -31,9 +31,6 @@ COPY pyproject.toml uv.lock ./
 # Install Python dependencies using system Python
 RUN uv sync --frozen
 
-# Preload rembg model into image
-RUN uv run python -c "from rembg import new_session; new_session('isnet-general-use')"
-
 # Copy application code
 COPY . .
 

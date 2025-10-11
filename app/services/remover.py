@@ -55,8 +55,17 @@ class BackgroundRemoverService:
         """Unload the model from memory"""
         with self._lock:
             if self._model_loaded:
+                # Explicitly delete the session to free ONNX Runtime resources
+                if self._session is not None:
+                    del self._session
                 self._session = None
                 self._model_loaded = False
+
+                # Force garbage collection to immediately release memory
+                import gc
+
+                gc.collect()
+
                 logger.info("Model unloaded from memory due to inactivity")
 
     async def _idle_checker(self) -> None:
@@ -275,6 +284,10 @@ class BackgroundRemoverService:
             # Unload model if loaded
             if self._model_loaded:
                 self._unload_model()
+            
+            # Force final garbage collection
+            import gc
+            gc.collect()
 
             # Shutdown executor
             if self._executor:

@@ -50,7 +50,7 @@ class Settings(BaseSettings):
         default=None, description="Directory to cache downloaded models"
     )
     MODEL_IDLE_TIMEOUT: int = Field(
-        default=300,
+        default=60,
         description="Model idle timeout in seconds (unload after inactivity)",
     )
 

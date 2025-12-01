@@ -269,17 +269,13 @@ class BackgroundRemoverService:
         """
         try:
             status = {
-                "status": "healthy" if self._model_loaded else "unhealthy",
+                "status": "healthy" if self.is_ready else "idle",
                 "model": settings.REMBG_MODEL,
                 "model_loaded": self._model_loaded,
-                "max_concurrent": settings.MAX_CONCURRENT_REQUESTS,
-                "queue_size": (
-                    self._processing_queue.qsize()
-                    if hasattr(self._processing_queue, "qsize")
-                    else 0
-                ),
+                "max_concurrent": min(2, settings.MAX_CONCURRENT_REQUESTS),
                 "executor_active": self._executor is not None
                 and not self._executor._shutdown,
+                "idle_timeout_seconds": self._idle_timeout,
             }
 
             return status

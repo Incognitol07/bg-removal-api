@@ -96,6 +96,9 @@ async def remove_background(
             # Remove background
             result_image = await remover_service.remove_background(image, request_id)
 
+            # Close original image to free memory
+            image.close()
+
             # Convert to bytes
             format_to_use = (
                 output_format.upper()
@@ -105,6 +108,9 @@ async def remove_background(
             quality_to_use = quality if quality else settings.OUTPUT_QUALITY
 
             image_bytes = image_to_bytes(result_image, format_to_use, quality_to_use)
+
+            # Close result image to free memory
+            result_image.close()
 
             # Prepare response
             content_type = get_content_type(format_to_use)
@@ -200,6 +206,11 @@ async def remove_background_batch(
                 images, request_id
             )
 
+            # Clean up original images immediately
+            for img in images:
+                img.close()
+            images.clear()
+
             # Create ZIP response
             import zipfile
             import io
@@ -236,6 +247,12 @@ async def remove_background_batch(
 
                     # Add to ZIP
                     zip_file.writestr(output_filename, image_bytes)
+
+                    # Clean up result image immediately after processing
+                    result_image.close()
+
+            # Clean up result images list
+            result_images.clear()
 
             zip_bytes = zip_buffer.getvalue()
 

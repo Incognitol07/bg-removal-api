@@ -65,9 +65,20 @@ class BackgroundRemoverService:
 
                 # Force aggressive garbage collection
                 import gc
+                import sys
+
+                # Unload rembg and onnxruntime from module cache to release memory
+                modules_to_remove = [
+                    key
+                    for key in sys.modules.keys()
+                    if "rembg" in key or "onnxruntime" in key
+                ]
+                for module in modules_to_remove:
+                    del sys.modules[module]
 
                 gc.collect()
                 gc.collect()  # Run twice for cyclic references
+                gc.collect()
 
                 logger.info("Model unloaded from memory due to inactivity")
 
@@ -108,8 +119,9 @@ class BackgroundRemoverService:
                 os.environ["U2NET_HOME"] = settings.MODEL_CACHE_DIR
 
             # Create thread pool executor for CPU-bound tasks
+            # Use smaller pool (2 workers) to reduce memory footprint
             self._executor = ThreadPoolExecutor(
-                max_workers=settings.MAX_CONCURRENT_REQUESTS,
+                max_workers=min(2, settings.MAX_CONCURRENT_REQUESTS),
                 thread_name_prefix="bg_remover",
             )
 
@@ -178,7 +190,7 @@ class BackgroundRemoverService:
             PIL Image with background removed
         """
         try:
-            # Lazy import: only import when processing
+            # Import here to avoid loading until model is actually needed
             from rembg import remove
 
             with self._lock:

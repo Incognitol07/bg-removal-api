@@ -54,33 +54,22 @@ class BackgroundRemoverService:
             raise
 
     def _unload_model(self) -> None:
-        """Unload the model from memory"""
+        """Unload the model weights from memory (keeping libraries loaded)"""
         with self._lock:
             if self._model_loaded:
-                # Explicitly delete the session to free ONNX Runtime resources
+                # Explicitly delete the session to free ONNX Runtime model weights
                 if self._session is not None:
                     del self._session
                 self._session = None
                 self._model_loaded = False
 
-                # Force aggressive garbage collection
+                # Force garbage collection to free model weights
                 import gc
-                import sys
-
-                # Unload rembg and onnxruntime from module cache to release memory
-                modules_to_remove = [
-                    key
-                    for key in sys.modules.keys()
-                    if "rembg" in key or "onnxruntime" in key
-                ]
-                for module in modules_to_remove:
-                    del sys.modules[module]
 
                 gc.collect()
-                gc.collect()  # Run twice for cyclic references
                 gc.collect()
 
-                logger.info("Model unloaded from memory due to inactivity")
+                logger.info("Model weights unloaded from memory due to inactivity")
 
     async def _idle_checker(self) -> None:
         """Background task to check for idle timeout and unload model"""

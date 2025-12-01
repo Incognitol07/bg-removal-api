@@ -9,7 +9,6 @@ import time
 from typing import List, Optional
 from PIL import Image
 import os
-from rembg import remove, new_session
 from app.core.config import settings
 from app.core.utils import PerformanceLogger, generate_request_id
 import threading
@@ -35,6 +34,9 @@ class BackgroundRemoverService:
     def _load_model(self) -> None:
         """Load the rembg model (blocking operation, runs in thread pool)"""
         try:
+            # Lazy import: only load rembg when actually needed
+            from rembg import new_session
+
             logger.info(f"Loading model {settings.REMBG_MODEL}...")
             start_time = time.time()
 
@@ -61,10 +63,11 @@ class BackgroundRemoverService:
                 self._session = None
                 self._model_loaded = False
 
-                # Force garbage collection to immediately release memory
+                # Force aggressive garbage collection
                 import gc
 
                 gc.collect()
+                gc.collect()  # Run twice for cyclic references
 
                 logger.info("Model unloaded from memory due to inactivity")
 
@@ -175,6 +178,9 @@ class BackgroundRemoverService:
             PIL Image with background removed
         """
         try:
+            # Lazy import: only import when processing
+            from rembg import remove
+
             with self._lock:
                 # Use the loaded session
                 result = remove(image, session=self._session)
@@ -284,9 +290,10 @@ class BackgroundRemoverService:
             # Unload model if loaded
             if self._model_loaded:
                 self._unload_model()
-            
+
             # Force final garbage collection
             import gc
+
             gc.collect()
 
             # Shutdown executor

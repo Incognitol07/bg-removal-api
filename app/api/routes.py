@@ -38,8 +38,7 @@ async def health_check(request: Request):
         Health status of the service
     """
     try:
-        # Create service on-demand (lightweight)
-        remover_service = BackgroundRemoverService()
+        remover_service: BackgroundRemoverService = request.app.state.remover_service
         health_status = await remover_service.health_check()
 
         # Return appropriate status code
@@ -83,8 +82,8 @@ async def remove_background(
     request_id = generate_request_id()
 
     try:
-        # Create service instance (lazy loading on first use)
-        remover_service = BackgroundRemoverService()
+        # Get remover service
+        remover_service: BackgroundRemoverService = request.app.state.remover_service
 
         with PerformanceLogger("Single image API processing", request_id):
             # Load image from upload
@@ -177,8 +176,8 @@ async def remove_background_batch(
         if len(files) == 0:
             raise HTTPException(status_code=400, detail="No files provided")
 
-        # Create service instance (lazy loading on first use)
-        remover_service = BackgroundRemoverService()
+        # Get remover service
+        remover_service: BackgroundRemoverService = request.app.state.remover_service
 
         with PerformanceLogger(
             f"Batch API processing ({len(files)} files)", request_id

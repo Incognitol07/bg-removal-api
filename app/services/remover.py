@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 class BackgroundRemoverService:
     """
-    Background remover service with pure lazy loading for serverless
-    Model loaded on first request, freed when container stops
+    Background remover service with lazy loading, idle timeout, and concurrent processing
     """
 
     def __init__(self):
@@ -29,9 +28,9 @@ class BackgroundRemoverService:
         self._model_loaded = False
         self._executor = None
         self._lock = threading.Lock()
-        logger.info(
-            "BackgroundRemoverService created (not initialized - serverless mode)"
-        )
+        self._last_used = 0.0
+        self._idle_timeout = settings.MODEL_IDLE_TIMEOUT
+        self._idle_checker_task: Optional[asyncio.Task] = None
 
     def _load_model(self) -> None:
         """Load the rembg model (blocking operation, runs in thread pool)"""
@@ -52,22 +51,77 @@ class BackgroundRemoverService:
             logger.error(f"Error loading model {settings.REMBG_MODEL}: {e}")
             raise
 
+    def _unload_model(self) -> None:
+        """Unload the model from memory"""
+        with self._lock:
+            if self._model_loaded:
+                # Explicitly delete the session to free ONNX Runtime resources
+                if self._session is not None:
+                    del self._session
+                self._session = None
+                self._model_loaded = False
+
+                # Force garbage collection to immediately release memory
+                import gc
+
+                gc.collect()
+
+                logger.info("Model unloaded from memory due to inactivity")
+
+    async def _idle_checker(self) -> None:
+        """Background task to check for idle timeout and unload model"""
+        while True:
+            try:
+                await asyncio.sleep(60)  # Check every minute
+
+                if self._model_loaded:
+                    idle_time = time.time() - self._last_used
+                    if idle_time > self._idle_timeout:
+                        self._unload_model()
+                        logger.info(
+                            f"Model was idle for {idle_time:.0f}s (timeout: {self._idle_timeout}s)"
+                        )
+
+            except asyncio.CancelledError:
+                logger.info("Idle checker task cancelled")
+                break
+            except Exception as e:
+                logger.error(f"Error in idle checker: {e}")
+
     async def _ensure_model_loaded(self) -> None:
         """Ensure model is loaded (thread-safe lazy loading)"""
         if not self._model_loaded:
             with self._lock:
                 if not self._model_loaded:  # Double-check pattern
-                    # Create executor if not exists
-                    if self._executor is None:
-                        self._executor = ThreadPoolExecutor(
-                            max_workers=settings.MAX_CONCURRENT_REQUESTS,
-                            thread_name_prefix="bg_remover",
-                        )
-                        logger.info("Thread pool executor created on-demand")
-
-                    with PerformanceLogger("Cold start - loading model"):
+                    with PerformanceLogger("Lazy model loading"):
                         loop = asyncio.get_event_loop()
                         await loop.run_in_executor(self._executor, self._load_model)
+
+    async def initialize(self) -> None:
+        """Initialize the service without loading model (lazy loading on first request)"""
+        try:
+            # Set model cache directory
+            if settings.MODEL_CACHE_DIR:
+                os.environ["U2NET_HOME"] = settings.MODEL_CACHE_DIR
+
+            # Create thread pool executor for CPU-bound tasks
+            self._executor = ThreadPoolExecutor(
+                max_workers=settings.MAX_CONCURRENT_REQUESTS,
+                thread_name_prefix="bg_remover",
+            )
+
+            # Start idle checker task
+            self._idle_checker_task = asyncio.create_task(self._idle_checker())
+
+            logger.info(
+                f"Background remover service initialized "
+                f"(model: {settings.REMBG_MODEL}, lazy loading enabled, "
+                f"idle timeout: {self._idle_timeout}s)"
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to initialize background remover service: {e}")
+            raise
 
     async def remove_background(
         self, image: Image.Image, request_id: str = None
@@ -90,7 +144,10 @@ class BackgroundRemoverService:
             request_id = generate_request_id()
 
         try:
-            # Ensure model is loaded (lazy loading on first request)
+            # Update last used timestamp
+            self._last_used = time.time()
+
+            # Ensure model is loaded (lazy loading)
             await self._ensure_model_loaded()
 
             with PerformanceLogger("Background removal", request_id):
@@ -151,6 +208,9 @@ class BackgroundRemoverService:
             )
 
         try:
+            # Update last used timestamp (once for the batch)
+            self._last_used = time.time()
+
             # Ensure model is loaded once for the entire batch
             await self._ensure_model_loaded()
 
@@ -190,14 +250,18 @@ class BackgroundRemoverService:
             Dictionary with health status
         """
         try:
-            # In serverless mode, service is healthy if it can start
             status = {
-                "status": "healthy",
-                "mode": "serverless",
+                "status": "healthy" if self._model_loaded else "unhealthy",
                 "model": settings.REMBG_MODEL,
                 "model_loaded": self._model_loaded,
-                "cold_start": not self._model_loaded,
                 "max_concurrent": settings.MAX_CONCURRENT_REQUESTS,
+                "queue_size": (
+                    self._processing_queue.qsize()
+                    if hasattr(self._processing_queue, "qsize")
+                    else 0
+                ),
+                "executor_active": self._executor is not None
+                and not self._executor._shutdown,
             }
 
             return status
@@ -207,25 +271,29 @@ class BackgroundRemoverService:
             return {"status": "unhealthy", "error": str(e)}
 
     async def cleanup(self) -> None:
-        """Clean up resources on shutdown"""
+        """Clean up resources"""
         try:
-            # Delete model session to free memory
-            if self._session is not None:
-                del self._session
-                self._session = None
+            # Cancel idle checker task
+            if self._idle_checker_task:
+                self._idle_checker_task.cancel()
+                try:
+                    await self._idle_checker_task
+                except asyncio.CancelledError:
+                    pass
 
-            self._model_loaded = False
+            # Unload model if loaded
+            if self._model_loaded:
+                self._unload_model()
+            
+            # Force final garbage collection
+            import gc
+            gc.collect()
 
             # Shutdown executor
             if self._executor:
                 logger.info("Shutting down thread pool executor...")
-                self._executor.shutdown(wait=False)  # Don't wait in serverless
+                self._executor.shutdown(wait=True)
                 self._executor = None
-
-            # Aggressive garbage collection
-            import gc
-
-            gc.collect()
 
             logger.info("Background remover service cleaned up")
 
@@ -234,5 +302,5 @@ class BackgroundRemoverService:
 
     @property
     def is_ready(self) -> bool:
-        """Check if service is ready to process requests (always true in serverless)"""
-        return True  # Always ready - will lazy load on first request
+        """Check if service is ready to process requests (executor initialized)"""
+        return self._executor is not None and not self._executor._shutdown

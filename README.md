@@ -1,15 +1,12 @@
 # Background Remover API
 
-A high-performance FastAPI service for removing backgrounds from images using the `rembg` library. Built with Docker support and designed for production use.
+An API for removing image backgrounds, built on [rembg](https://github.com/danielgatis/rembg). Runs in Docker.
 
-## Features
+## What it does
 
-- 🖼️ **Single Image Processing**: Remove background from individual images
-- 📦 **Batch Processing**: Process multiple images in a single request
-- 🎨 **Multiple Output Formats**: Support for PNG, JPEG, and WEBP
-- ⚡ **High Performance**: Async processing with concurrent request handling
-- 🚀 **Production Ready**: Docker containerization with health checks
-- 🔧 **Configurable**: Environment-based configuration
+- Remove backgrounds from single images or in batches
+- Output as PNG, JPEG, or WEBP
+- Handles concurrent requests
 
 ## Quick Start
 
@@ -59,12 +56,12 @@ A high-performance FastAPI service for removing backgrounds from images using th
 
 ### Core Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/remove` | Remove background from single image |
-| `POST` | `/api/v1/batch` | Remove background from multiple images |
-| `GET` | `/api/v1/health` | Health check |
-| `GET` | `/api/v1/info` | API information |
+| Method | Endpoint         | Description                            |
+| ------ | ---------------- | -------------------------------------- |
+| `POST` | `/api/v1/remove` | Remove background from single image    |
+| `POST` | `/api/v1/batch`  | Remove background from multiple images |
+| `GET`  | `/api/v1/health` | Health check                           |
+| `GET`  | `/api/v1/info`   | API information                        |
 
 ### Single Image Processing
 
@@ -92,13 +89,13 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 
 ### Key Configuration Options
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REMBG_MODEL` | `isnet-general-use` | Background removal model |
-| `MAX_FILE_SIZE` | `10485760` | Maximum file size (10MB) |
-| `MAX_FILES_BATCH` | `5` | Maximum files per batch |
-| `MAX_CONCURRENT_REQUESTS` | `4` | Concurrent processing limit |
-| `DEFAULT_OUTPUT_FORMAT` | `PNG` | Default output format |
+| Variable                  | Default             | Description                 |
+| ------------------------- | ------------------- | --------------------------- |
+| `REMBG_MODEL`             | `isnet-general-use` | Background removal model    |
+| `MAX_FILE_SIZE`           | `10485760`          | Maximum file size (10MB)    |
+| `MAX_FILES_BATCH`         | `5`                 | Maximum files per batch     |
+| `MAX_CONCURRENT_REQUESTS` | `4`                 | Concurrent processing limit |
+| `DEFAULT_OUTPUT_FORMAT`   | `PNG`               | Default output format       |
 
 ## Docker Deployment
 
@@ -109,20 +106,13 @@ The API is configured through environment variables. Copy `.env.example` to `.en
 docker build -t bg-remover-api:latest .
 ```
 
-## Health Monitoring
-
-The API provides comprehensive health checks:
+## Health Check
 
 ```bash
 curl http://localhost:8000/api/v1/health
 ```
 
-Response includes:
-
-- Service status
-- Model loading status
-- Processing capabilities
-- Queue information
+Returns service status, model info, and queue state.
 
 ## Error Handling
 
@@ -156,13 +146,12 @@ X-Input-Size: 1048576
 X-Output-Size: 987654
 ```
 
-## Security Considerations
+## Security
 
-- **File Validation**: Strict file type and size validation
-- **Non-Root User**: Docker container runs as non-root
-- **CORS Configuration**: Configurable CORS origins
-- **Request Limits**: Built-in rate limiting and concurrency control
-- **Input Sanitization**: Comprehensive input validation
+- File type and size validation
+- Runs as non-root in Docker
+- Configurable CORS
+- Concurrency limits
 
 ## Contributing
 
@@ -178,10 +167,6 @@ MIT License - see LICENSE file for details.
 
 ## Support
 
-- 📖 **Documentation**: Available at `/docs` endpoint
-- 🐛 **Issues**: Create GitHub issues for bugs
-- 💬 **Discussions**: Use GitHub discussions for questions
-
----
-
-Built with ❤️ using FastAPI, rembg, and Docker.
+- Docs at `/docs`
+- Bugs → GitHub Issues
+- Questions → GitHub Discussions

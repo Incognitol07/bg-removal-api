@@ -83,90 +83,26 @@ curl -X POST "http://localhost:8000/api/v1/batch" \
   --output batch_results.zip
 ```
 
+For full API details (parameters, error codes, response formats), see the interactive docs at `/docs`.
+
 ## Configuration
 
-The API is configured through environment variables. Copy `.env.example` to `.env` and modify as needed:
+Copy `.env.example` to `.env`. Key options:
 
-### Key Configuration Options
-
-| Variable                  | Default             | Description                 |
-| ------------------------- | ------------------- | --------------------------- |
-| `REMBG_MODEL`             | `isnet-general-use` | Background removal model    |
-| `MAX_FILE_SIZE`           | `10485760`          | Maximum file size (10MB)    |
-| `MAX_FILES_BATCH`         | `5`                 | Maximum files per batch     |
-| `MAX_CONCURRENT_REQUESTS` | `4`                 | Concurrent processing limit |
-| `DEFAULT_OUTPUT_FORMAT`   | `PNG`               | Default output format       |
-
-## Docker Deployment
-
-### Production Deployment
-
-```bash
-# Build production image
-docker build -t bg-remover-api:latest .
-```
-
-## Health Check
-
-```bash
-curl http://localhost:8000/api/v1/health
-```
-
-Returns service status, model info, and queue state.
-
-## Error Handling
-
-The API provides detailed error responses:
-
-```json
-{
-  "detail": "File size (15728640 bytes) exceeds maximum allowed size (10485760 bytes)",
-  "status_code": 413
-}
-```
-
-Common error codes:
-
-- `400` - Invalid input (file type, parameters)
-- `413` - File too large
-- `422` - Validation error
-- `500` - Processing error
-- `503` - Service unavailable
-
-## API Response Headers
-
-Successful responses include useful metadata:
-
-```plaintext
-Content-Type: image/png
-Content-Disposition: attachment; filename=no_bg_image.png
-X-Request-ID: 12345678-1234-1234-1234-123456789012
-X-Processing-Model: isnet-general-use
-X-Input-Size: 1048576
-X-Output-Size: 987654
-```
-
-## Security
-
-- File type and size validation
-- Runs as non-root in Docker
-- Configurable CORS
-- Concurrency limits
+| Variable                  | Default             | Description              |
+| ------------------------- | ------------------- | ------------------------ |
+| `REMBG_MODEL`             | `isnet-general-use` | Background removal model |
+| `MAX_FILE_SIZE`           | `10485760`          | Max file size (10MB)     |
+| `MAX_FILES_BATCH`         | `5`                 | Max files per batch      |
+| `MAX_CONCURRENT_REQUESTS` | `4`                 | Concurrent request limit |
 
 ## Contributing
 
-1. Fork the repository
+1. Fork the repo
 2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+3. Make changes + add tests
+4. Submit a PR
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Support
-
-- Docs at `/docs`
-- Bugs → GitHub Issues
-- Questions → GitHub Discussions
+MIT
